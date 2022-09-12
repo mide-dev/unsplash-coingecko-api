@@ -4,9 +4,10 @@ const authourName = document.querySelector(".author");
 const coinName = document.getElementById("coin-name");
 const coinLogo = document.getElementById("coin-logo");
 const coinPrice = document.querySelector(".coin-price");
+const time = document.querySelector(".time");
 
-// get random image from unsplash api
-const getBG = async () => {
+// get random image from unsplash api and display to console
+(async () => {
   try {
     const res = await fetch(
       "https://api.unsplash.com/photos/random?client_id=KK-uDiM1_XwSb34vCSd-Ze058mga7JJ1mw1bdPwUPVM&orientation=landscape&query=nature"
@@ -25,22 +26,21 @@ const getBG = async () => {
 
     return bgImage;
   } catch (err) {
-    console.error(err.message);
+    // console.error(err.message);
+    return;
   }
-};
+})();
 
-const coinApi = async () => {
+// Fetch coin data
+const coinData = async () => {
   try {
     const res = await fetch("https://api.coingecko.com/api/v3/coins/bitcoin");
 
     if (!res.ok) throw new Error("something went wrong!");
 
     const coinData = await res.json();
-    console.log(coinData);
     coinName.textContent = coinData.name;
     coinLogo.src = coinData.image.thumb;
-
-    console.log(coinData.market_data.current_price.usd);
 
     // Create currency formatter.
     const formatter = new Intl.NumberFormat("en-US", {
@@ -56,11 +56,39 @@ const coinApi = async () => {
       <p>24hr ⬆️: ${formatter.format(coinData.market_data.high_24h.usd)}</p>
       <p>24hr ⬇️: ${formatter.format(coinData.market_data.low_24h.usd)}</p>`;
 
-    coinPrice.insertAdjacentHTML("beforeend", price);
+    // coinPrice.insertAdjacentHTML("beforeend", price);
+    coinPrice.innerHTML = price;
   } catch (err) {
     console.error(err.message);
   }
 };
 
-getBG();
-coinApi();
+coinData();
+// update and display coin data every 2min
+setInterval(coinData, 60 * 2000);
+
+// Display TIME
+setInterval(() => {
+  const today = new Date();
+  time.textContent = today.toLocaleTimeString();
+}, 1000);
+
+// weather API
+const getLocation = () => {
+  // get user coordinate
+  if (!navigator.geolocation) return;
+
+  navigator.geolocation.getCurrentPosition((position) => {
+    const lat = position.coords.latitude;
+    const lng = position.coords.longitude;
+
+    fetch(
+      `http://api.weatherstack.com/? access_key = 30d957ff2418e8d080c6fb63520376c7
+      &query = 40.7831,-73.9712&units = m`
+    )
+      .then((res) => res.json())
+      .then((data) => console.log(data));
+    // console.log(lat);
+  });
+};
+getLocation();
